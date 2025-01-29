@@ -1,6 +1,7 @@
 package com.admin_service.demo.controller;
 
 import com.admin_service.demo.Service.UserService;
+import com.admin_service.demo.dto.UserDTO;
 import com.admin_service.demo.models.User;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +19,8 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUserDTOs();
     }
 
     @PutMapping("/{userId}")
