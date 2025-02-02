@@ -2,6 +2,8 @@ package com.admin_service.demo.models;
 
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,6 +27,7 @@ public class User {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
