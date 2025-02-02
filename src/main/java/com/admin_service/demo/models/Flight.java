@@ -34,6 +34,9 @@ public class Flight {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
     // Можно добавить, если нужно автоматически выставлять дату создания:
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -93,6 +96,15 @@ public class Flight {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    // Добавляем сеттер для status
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -2,6 +2,7 @@ package com.admin_service.demo.Service;
 
 import com.admin_service.demo.dto.FlightDTO;
 import com.admin_service.demo.models.Flight;
+import com.admin_service.demo.repositories.BookingRepository;
 import com.admin_service.demo.repositories.FlightRepository;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +11,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class FlightService {
-    private final FlightRepository flightRepository;
 
-    public FlightService(FlightRepository flightRepository) {
+    private final FlightRepository flightRepository;
+    private final BookingRepository bookingRepository;
+
+    public FlightService(FlightRepository flightRepository, BookingRepository bookingRepository) {
         this.flightRepository = flightRepository;
+        this.bookingRepository = bookingRepository;
     }
 
-    // Метод для преобразования сущности Flight в FlightDTO
+    // Преобразование сущности в DTO
     public FlightDTO toDTO(Flight flight) {
         FlightDTO dto = new FlightDTO();
         dto.setId(flight.getId());
@@ -29,7 +33,7 @@ public class FlightService {
         return dto;
     }
 
-    // Метод для преобразования FlightDTO в сущность Flight
+    // Преобразование DTO в сущность
     public Flight toEntity(FlightDTO dto) {
         Flight flight = new Flight();
         flight.setOrigin(dto.getOrigin());
@@ -38,17 +42,20 @@ public class FlightService {
         flight.setArrivalTime(dto.getArrivalTime());
         flight.setAvailableSeats(dto.getAvailableSeats());
         flight.setPrice(dto.getPrice());
+        // Обратите внимание: поле status может быть установлено по умолчанию при создании,
+        // например, "ACTIVE"
+        flight.setStatus("ACTIVE");
         return flight;
     }
 
-    // Создание нового рейса с использованием DTO
+    // Создание нового рейса
     public FlightDTO createFlight(FlightDTO flightDTO) {
         Flight flight = toEntity(flightDTO);
         Flight createdFlight = flightRepository.save(flight);
         return toDTO(createdFlight);
     }
 
-    // Обновление существующего рейса с использованием DTO
+    // Обновление рейса
     public FlightDTO updateFlight(Long flightId, FlightDTO flightDTO) {
         Flight updatedFlight = flightRepository.findById(flightId)
                 .map(flight -> {
@@ -64,12 +71,21 @@ public class FlightService {
         return toDTO(updatedFlight);
     }
 
-    // Удаление рейса
-    public void deleteFlight(Long flightId) {
-        flightRepository.deleteById(flightId);
+    // Soft delete (деактивация) рейса
+    public FlightDTO deleteFlight(Long flightId) {
+        // Проверяем, есть ли бронирования для данного рейса
+        if (bookingRepository.existsByFlightId(flightId)) {
+            throw new RuntimeException("Flight cannot be deactivated because bookings exist");
+        }
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+        // Обновляем статус на "DEACTIVATED"
+        flight.setStatus("DEACTIVATED");
+        Flight updatedFlight = flightRepository.save(flight);
+        return toDTO(updatedFlight);
     }
 
-    // Получение списка всех рейсов в формате DTO
+    // Получение списка всех рейсов
     public List<FlightDTO> getAllFlightsDTO() {
         List<Flight> flights = flightRepository.findAll();
         return flights.stream()
@@ -77,7 +93,7 @@ public class FlightService {
                 .collect(Collectors.toList());
     }
 
-    // Получение данных о конкретном рейсе в формате DTO
+    // Получение конкретного рейса по ID
     public FlightDTO getFlightByIdDTO(Long flightId) {
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new RuntimeException("Flight not found"));

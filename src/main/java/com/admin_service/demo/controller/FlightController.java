@@ -30,10 +30,15 @@ public class FlightController {
         return ResponseEntity.ok(updatedFlight);
     }
 
+    // Soft delete: деактивировать рейс
     @DeleteMapping("/{flightId}")
-    public ResponseEntity<String> deleteFlight(@PathVariable Long flightId) {
-        flightService.deleteFlight(flightId);
-        return ResponseEntity.ok("Flight deleted successfully");
+    public ResponseEntity<?> deleteFlight(@PathVariable Long flightId) {
+        try {
+            FlightDTO flightDTO = flightService.deleteFlight(flightId);
+            return ResponseEntity.ok(flightDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @GetMapping
@@ -44,7 +49,7 @@ public class FlightController {
 
     @GetMapping("/{flightId}")
     public ResponseEntity<FlightDTO> getFlightById(@PathVariable Long flightId) {
-        FlightDTO flight = flightService.getFlightByIdDTO(flightId);
-        return ResponseEntity.ok(flight);
+        FlightDTO flightDTO = flightService.getFlightByIdDTO(flightId);
+        return ResponseEntity.ok(flightDTO);
     }
 }
